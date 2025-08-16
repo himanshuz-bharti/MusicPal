@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "dev": "nodemon src/index.js",
-    "seed:songs":"node src/seed/songs.js",
-    "seed:albums":"node src/seed/albums.js"
-  },
+ "scripts": {
+  "dev": "nodemon src/index.js",
+  "start": "node src/index.js",
+  "seed:songs": "node src/seed/songs.js",
+  "seed:albums": "node src/seed/albums.js"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
