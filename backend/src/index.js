@@ -11,11 +11,12 @@ const albumRouter = require('./routes/album.route.js');
 const songRouter = require('./routes/song.route.js');
 const cors = require('cors');
 const port = process.env.PORT;
+const frontendURL = process.env.CLIENT_URL;
 
 const app = express(); 
 
 app.use(cors({
-    origin:'http://localhost:5173',
+    origin: frontendURL,
     credentials:true,
     allowedHeaders: ['Content-Type','Authorization'],
 }));

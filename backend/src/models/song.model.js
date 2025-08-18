@@ -27,7 +27,6 @@ const songSchema = new mongoose.Schema({
     },
     year:{
         type:Number,
-        
     }
 },{timestamps:true})
 

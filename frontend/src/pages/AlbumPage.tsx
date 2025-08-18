@@ -102,7 +102,6 @@ function AlbumPage() {
   const handlePlaySong = (index:number) => {
     if(!currentAlbum) return;
     playAlbum(currentAlbum?.songs,index);
-    // Add your play logic here
   };
   
   const handlePlayAll = () => {
