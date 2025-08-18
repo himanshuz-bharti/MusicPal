@@ -20,6 +20,9 @@ app.use(cors({
     credentials:true,
     allowedHeaders: ['Content-Type','Authorization'],
 }));
+app.get('/', (req, res) => {
+  res.send('MusicPal API is running'); 
+});
 app.use(express.json());
 app.use(clerkMiddleware());
 app.use(fileUpload({
