@@ -1,6 +1,3 @@
-import React from 'react';
-import { Music } from 'lucide-react';
-
 const PlaylistSkeleton = () => {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">

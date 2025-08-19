@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { MessageCircle, Users, Search, MoreVertical, Phone, Video, Lock, UserPlus, Music } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { MessageCircle, Users, Search, MoreVertical, Phone, Lock, UserPlus, Music } from 'lucide-react'
 import { useChatStore } from '../stores/useChatStore'
 import { useUser } from '@clerk/clerk-react';
 import SignInOAuthButton from './SignInOAuthButton';

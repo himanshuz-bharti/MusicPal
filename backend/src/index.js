@@ -1,4 +1,5 @@
 require('dotenv').config();
+const __dirname = path.resolve();
 const express = require('express');
 const { dbConnect } = require('./config/database');
 const {clerkMiddleware} = require('@clerk/express');
@@ -20,9 +21,6 @@ app.use(cors({
     credentials:true,
     allowedHeaders: ['Content-Type','Authorization'],
 }));
-app.get('/', (req, res) => {
-  res.send('MusicPal API is running'); 
-});
 app.use(express.json());
 app.use(clerkMiddleware());
 app.use(fileUpload({
@@ -31,6 +29,13 @@ app.use(fileUpload({
     createParentPath:true,
     limits: { fileSize: 10 * 1024 * 1024 }, 
 }));
+
+if(process.env.NODE_ENV==='production'){
+    app.use(express.static(path.join(__dirname,'../frontend','dist')));
+    app.get('*',(req,res)=>{
+        res.sendFile(path.join(__dirname,'../frontend','dist','index.html'));
+    })
+}
 app.use('/api/user',userRouter);
 app.use('/api/auth',authRouter);
 app.use('/api/admin',adminRouter);
