@@ -1,39 +1,6 @@
 require('dotenv').config();
 //const __dirname = path.resolve();
 const express = require('express');
-// --- BEGIN: defensive sanitization for Express route mounts ---
-// Put this right after: const express = require('express');
-function sanitizePath(urlOrPath) {
-  if (typeof urlOrPath !== 'string') return urlOrPath;
-  if (/^https?:\/\//i.test(urlOrPath)) {
-    try {
-      return new URL(urlOrPath).pathname || '/';
-    } catch (e) {
-      return urlOrPath.startsWith('/') ? urlOrPath : '/';
-    }
-  }
-  return urlOrPath;
-}
-
-// Patch Router and app methods that accept route paths so any accidental full-URL becomes a pathname
-const methods = ['use','get','post','put','delete','patch','all'];
-methods.forEach((m) => {
-  // Patch Router.prototype
-  const origRouterFn = require('express').Router.prototype[m];
-  require('express').Router.prototype[m] = function(path, ...rest) {
-    if (typeof path === 'string') path = sanitizePath(path);
-    return origRouterFn.call(this, path, ...rest);
-  };
-
-  // Patch application (app) methods too
-  const appProto = require('express').application;
-  const origAppFn = appProto[m];
-  appProto[m] = function(path, ...rest) {
-    if (typeof path === 'string') path = sanitizePath(path);
-    return origAppFn.call(this, path, ...rest);
-  };
-});
-// --- END: defensive sanitization ---
 
 const { dbConnect } = require('./config/database');
 const {clerkMiddleware} = require('@clerk/express');
