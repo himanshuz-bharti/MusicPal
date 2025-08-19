@@ -31,12 +31,6 @@ app.use(fileUpload({
     limits: { fileSize: 10 * 1024 * 1024 }, 
 }));
 
-if(process.env.NODE_ENV==='production'){
-    app.use(express.static(path.join(__dirname,'../../frontend','dist')));
-    app.get('/*catchAll',(req,res)=>{
-        res.sendFile(path.join(__dirname,'../../frontend','dist','index.html'));
-    })
-}
 app.use('/api/user',userRouter);
 app.use('/api/auth',authRouter);
 app.use('/api/admin',adminRouter);
@@ -47,6 +41,13 @@ app.use((err,req,res,next)=>{
         message:process.env.NODE_ENV==='production'?'Internal Server Error':err.message,
     })
 })
+
+if(process.env.NODE_ENV==='production'){
+    app.use(express.static(path.join(__dirname,'../../frontend','dist')));
+    app.get('/*catchAll',(req,res)=>{
+        res.sendFile(path.join(__dirname,'../../frontend','dist','index.html'));
+    })
+}
 
 dbConnect().then(()=>{
     console.log('Database connected successfully');
