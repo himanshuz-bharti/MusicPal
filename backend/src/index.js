@@ -1,5 +1,5 @@
 require('dotenv').config();
-const __dirname = path.resolve();
+//const __dirname = path.resolve();
 const express = require('express');
 const { dbConnect } = require('./config/database');
 const {clerkMiddleware} = require('@clerk/express');
