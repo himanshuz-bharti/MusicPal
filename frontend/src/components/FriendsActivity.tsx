@@ -219,7 +219,7 @@ function FriendsActivity() {
           <div className="max-h-80 overflow-y-auto">
             {isLoading ? (
               <LoadingFriendSkeleton />
-            ) : users && users.length > 0 ? (
+            ) : (users && users.length > 0) ? (
               <div className="p-2">
                 {users.map((user, index) => (
                   <FriendCard key={user.clerkId} user={user} isPlaying={isPlaying}/>

@@ -25,7 +25,7 @@ function UserHome() {
   const {initializeQueue} = usePlayerStore();
 
   useEffect(()=>{
-    if(madeForYouSongs.length>0 && featuredSongs.length>0 && trendingSongs.length>0){
+    if(madeForYouSongs && madeForYouSongs.length>0 && featuredSongs && featuredSongs.length>0 && trendingSongs && trendingSongs.length>0){
       const allSongs = [...madeForYouSongs,...featuredSongs,...trendingSongs];
       initializeQueue(allSongs);
     }
