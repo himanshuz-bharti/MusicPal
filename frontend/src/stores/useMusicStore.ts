@@ -13,12 +13,15 @@ interface MusicStore{
     likedSongs:Song[],
     fetchlikedSongs:()=>Promise<void>,  
     togglelikeSong:(songId:string)=>Promise<void>, 
-    checkisLiked:(songId:string)=>Promise<boolean>,
     fetchAlbums:()=>Promise<void>,
     fetchAlbumById:(id:string)=>Promise<void>,
     fetchMadeforYouSongs:()=>Promise<void>,
     fetchTrendingSongs:()=>Promise<void>,
     fetchFeaturedSongs:()=>Promise<void>,
+    createAlbum:(albumName:string,imgFile:File,songId:string)=>Promise<void>,
+    deleteAlbum:(albumId:string)=>Promise<void>,
+    addSongtoAlbum:(songId:string,albumId:string)=>Promise<void>,
+    removeSongFromAlbum:(songId:string,albumId:string)=>Promise<void>,
 
 }
 export const useMusicStore = create<MusicStore>((set)=>({
@@ -32,6 +35,10 @@ export const useMusicStore = create<MusicStore>((set)=>({
    trendingSongs:[],
    likedSongs:[],
    fetchlikedSongs:async()=>{
+     set({
+        isLoading:true,
+        error:null,
+    })
       try {
         const res = await axiosInstance.get('/user/likedSongs');
         set({
@@ -41,7 +48,11 @@ export const useMusicStore = create<MusicStore>((set)=>({
         set({
             error:error?.response?.data?.message
         })
-      }
+      }finally{
+          set({
+            isLoading:false
+          })
+        }
    },
    togglelikeSong:async(songId:string)=>{
        try {
@@ -55,16 +66,6 @@ export const useMusicStore = create<MusicStore>((set)=>({
                error:error?.response?.data?.message
            })
        }
-   },
-   checkisLiked:async(songId:string)=>{
-        try {
-            const res = await axiosInstance.get(`/user/isliked/${songId}`);
-            return res.data.isLiked;
-        } catch (error:any) {
-            set({
-                error:error?.response?.data?.message
-            })
-        }
    },
    fetchAlbums:async()=>{
     set({
@@ -144,5 +145,83 @@ export const useMusicStore = create<MusicStore>((set)=>({
     } finally{
         set({isLoading:false})
     }
-   }
+   },
+   createAlbum:async(albumName:string,imgFile:File,songId:string)=>{
+       set({
+        isLoading:true,
+        error:null,
+       })
+       try {
+        const formdata = new FormData();
+        formdata.append('albumName', albumName);
+        formdata.append('imageFile', imgFile);
+        formdata.append('songId', songId);
+        const res = await axiosInstance.post('/album/createAlbum', formdata,{
+            headers:{
+                'Content-Type':'multipart/form-data'
+            }
+        });
+        console.log(res);
+        set({
+            albums:res.data.albums,
+        })
+       } catch (error:any) {
+        set({error:error?.response?.data?.message})
+       }finally{
+        set({isLoading:false});
+       }
+   },
+   deleteAlbum:async(albumId:string)=>{
+      set({
+        isLoading:true,
+        error:null,
+      })
+      try {
+        const res = await axiosInstance.delete(`/album/${albumId}`);
+        set({
+            albums:res.data.albums,
+        })
+      } catch (error:any) {
+        set({error:error?.response?.data?.message})
+      }finally{
+        set({isLoading:false});
+      }
+   },
+   addSongtoAlbum:async(songId:string,albumId:string)=>{
+    set({
+        isLoading:true,
+        error:null,
+    })
+    try {
+        const res = await axiosInstance.post('/album/addSongToAlbum',{songId,albumId});
+        set({
+            albums:res.data.albums
+        })
+        
+    } catch (error:any) {
+        set({error:error?.response?.data?.message})
+    }finally{
+          set({
+            isLoading:false
+          })
+        }
+   },
+   removeSongFromAlbum:async(songId:string,albumId:string)=>{
+    set({
+        isLoading:true,
+        error:null,
+    })
+     try {
+        const res = await axiosInstance.post('/album/removeSongFromAlbum',{songId,albumId});
+                set({
+                currentAlbum:res.data.album
+        })
+     } catch (error:any) {
+        set({error:error?.response?.data?.message})
+     }finally{
+          set({
+            isLoading:false
+          })
+        }
+    }
 }))

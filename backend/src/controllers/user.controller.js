@@ -37,17 +37,18 @@ const toggleLikeSong = async(req,res)=>{
         const user = await userModel.findOne({clerkId:userId});
         const isLiked = user.likedSongs.includes(songId);
         if(isLiked){
-            user.likedSongs = user.likedSongs.filter(id=>id.toString()===songId);
+            user.likedSongs = user.likedSongs.filter(id=>id.toString()!==songId);
             await user.save();
         }
         else{
             user.likedSongs.push(songId);
             await user.save();
         }
+        const newuser = await userModel.findOne({clerkId:userId}).populate('likedSongs');
         res.status(200).json({
             message:'Songs toggled successfully',
             liked:!isLiked,
-            likedSongs:user.likedSongs,
+            likedSongs:newuser.likedSongs,
         })
     } catch (error) {
         console.error('Error in toggling liked song:',error);
@@ -57,8 +58,8 @@ const toggleLikeSong = async(req,res)=>{
 const isLiked = async(req,res)=>{
     try {
         const {songId} = req.params;
+         if(!songId) return res.status(400).json({message:'SongID is needed'})
         const {userId} = req.auth();
-
         const user = await userModel.findOne({clerkId:userId})
         if(!user) return res.status(400).json({message:'User not found'});
         const likedStatus = user.likedSongs.includes(songId);

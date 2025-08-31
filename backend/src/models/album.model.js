@@ -11,16 +11,14 @@ const albumSchema = new mongoose.Schema({
     },
     artist:{
         type:String,
-        required:true,
     },
     releaseYear:{
         type:Number,
-        required:true,
     },
     songs:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:'Song',
-    }]
+    }],
 },{timestamps:true})
 
 const albumModel = mongoose.model('Album',albumSchema);

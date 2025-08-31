@@ -92,9 +92,10 @@ const MainLayout: React.FC = () => {
         className="bg-gray-800 text-white flex flex-col"
         style={{ width: `${leftWidth}%` }}
       >
-        <AudioPlayer/>
-        <div className="border-b border-gray-700">
-          <LeftSidebar/>
+        <AudioPlayer />
+        {/* Remove the overflow-y-scroll and border from here */}
+        <div className="flex-1 min-h-0">
+          <LeftSidebar />
         </div>
       </div>
 
@@ -110,8 +111,8 @@ const MainLayout: React.FC = () => {
           {/* This is where the Outlet renders */}
           <div className="min-w-0">
             <Outlet />
+          </div>
         </div>
-      </div>
       </div>
 
       {/* Right Resize Handle */}
@@ -122,7 +123,7 @@ const MainLayout: React.FC = () => {
         className="bg-gray-50 border-l border-gray-200 flex flex-col"
         style={{ width: `${rightWidth}%` }}
       >
-      <FriendsActivity/>
+        <FriendsActivity />
       </div>
     </div>
   );

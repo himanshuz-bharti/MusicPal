@@ -1,8 +1,8 @@
 import { useMusicStore } from '../stores/useMusicStore';
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Play, Clock, Heart, MoreHorizontal, Shuffle,Music,Pause } from 'lucide-react';
-import type { Song, Album } from '../types';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Play, Clock, Heart, MoreHorizontal, Shuffle,Music,Pause,X, Delete } from 'lucide-react';
+import type { Song } from '../types';
 import { LoadingSkeleton } from '../Skeletons/AlbumSkeleton';
 import { usePlayerStore } from '../stores/usePlayer';
 import MusicPlayer from '../components/MusicPlaybackSlider';
@@ -13,6 +13,7 @@ interface SongItemProps {
   onPlay: (index:number) => void;
   currentSong : Song | null;
   isPlaying : boolean;
+  albumId:string | undefined;
   togglePlay:()=>void;
 }
 const songDuration = (duration:number) =>{
@@ -23,9 +24,45 @@ const songDuration = (duration:number) =>{
     return `${dis_min}:${dis_sec}`
    }
 
-export const SongItem: React.FC<SongItemProps> = ({ song, index, onPlay,currentSong,isPlaying,togglePlay }) => {
-    const isCurrentSong = currentSong?._id === song._id;
 
+export const SongItem: React.FC<SongItemProps> = ({ song,albumId, index, onPlay,currentSong,isPlaying,togglePlay }) => {
+    const isCurrentSong = currentSong?._id === song._id;
+    const [currisliked,setcurrisliked] = useState(false);
+    const [loadingisliked,setloadingisliked] = useState(false);
+    const {togglelikeSong,likedSongs,removeSongFromAlbum} = useMusicStore();
+
+   const removeSong =async(songId:string | undefined,albumId:string | undefined) =>{
+      if(!songId || !albumId) return;
+      try {
+        const res = await removeSongFromAlbum(songId,albumId);
+        console.log(res);
+      } catch (error) {
+        console.error('Error removing song from album',error);
+      }
+   }
+   
+    // FIXED: Only update when song or likedSongs actually change, with proper dependency management
+    useEffect(()=>{
+        if(song && likedSongs) {
+          const isLiked = likedSongs.some((s)=>s._id===song._id);
+          setcurrisliked(isLiked);
+        }
+    },[song._id, likedSongs]) // More specific dependencies
+
+    const handleLike = async(songId:string | undefined) =>{
+      if(!songId || loadingisliked) return;
+      setloadingisliked(true);
+      try {
+        await togglelikeSong(songId);
+        setcurrisliked(!currisliked);
+        // FIXED: Don't refetch all liked songs here - let the store handle updates
+      } catch (error) {
+        console.error('Error toggling like',error);
+      }finally{
+        setloadingisliked(false);
+      }
+    }
+    
   return (
     <div className="group flex items-center gap-4 px-6 py-3 hover:bg-white/5 rounded-lg transition-all duration-200 cursor-pointer">
       {/* Track Number / Play Button */}
@@ -65,11 +102,13 @@ export const SongItem: React.FC<SongItemProps> = ({ song, index, onPlay,currentS
 
       {/* Actions */}
       <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-        <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
-          <Heart className="w-4 h-4 text-gray-400 hover:text-red-400" />
+        <button className={`p-2 rounded-full hover:bg-gray-800 transition-colors ${
+            currisliked ? 'text-green-500' : 'text-gray-400'
+          }`} onClick={()=>handleLike(song._id)}>
+          <Heart className={`w-4 h-4 ${currisliked ? 'fill-current' : ''}`} />
         </button>
-        <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
-          <MoreHorizontal className="w-4 h-4 text-gray-400" />
+        <button className="p-2 hover:bg-white/10 rounded-full transition-colors" onClick={()=>removeSong(song._id,albumId)}>
+          <X className="w-4 h-4 text-gray-400" />
         </button>
       </div>
     </div>
@@ -80,9 +119,11 @@ export const SongItem: React.FC<SongItemProps> = ({ song, index, onPlay,currentS
 
 function AlbumPage() {
   const { id } = useParams();
-  const { currentAlbum, fetchAlbumById, isLoading } = useMusicStore();
+  const { currentAlbum, fetchAlbumById, isLoading, likedSongs,deleteAlbum } = useMusicStore(); // FIXED: Get likedSongs from store
   const {currentSong,playAlbum,togglePlay,isPlaying} = usePlayerStore();
   const [showPlayer,setshowPlayer] = useState(false);
+  const navigate = useNavigate();
+  
   useEffect(()=>{
     if(isPlaying){
       setshowPlayer(true);
@@ -93,11 +134,11 @@ function AlbumPage() {
       },3000);
       return () =>clearTimeout(timer);
     }
-  },[isPlaying])
-
+  },[isPlaying]);
+  
   useEffect(() => {
     if (id) fetchAlbumById(id);
-  }, [id,fetchAlbumById]);
+  }, [id, fetchAlbumById]);
 
   const handlePlaySong = (index:number) => {
     if(!currentAlbum) return;
@@ -112,6 +153,16 @@ function AlbumPage() {
         playAlbum(currentAlbum?.songs,0);
     }
   };
+
+  const handleDeleteAlbum =async()=>{
+    if(!currentAlbum) return;
+    try{
+      const del = await deleteAlbum(currentAlbum._id);
+      navigate('/UserHome')
+    }catch(error){
+      console.error('Error deleting album',error);
+    }
+  }
 
   const handleShuffle = () => {
     if(!currentAlbum) return;
@@ -189,9 +240,9 @@ function AlbumPage() {
                 {currentAlbum.name}
               </h1>
               <div className="flex items-center gap-2 text-gray-300">
-                <span className="font-medium">{currentAlbum.artist}</span>
+                <span className="font-medium">{currentAlbum.artist || 'Various Artists'}</span>
                 <span>•</span>
-                <span>{currentAlbum?.releaseYear}</span>
+                <span>{currentAlbum?.releaseYear || 'XXXX'}</span>
                 <span>•</span>
                 <span>{currentAlbum.songs?.length || 0} songs</span>
                 <span>•</span>
@@ -231,14 +282,13 @@ function AlbumPage() {
           <Heart className="w-6 h-6 text-gray-400 hover:text-red-400" />
         </button>
 
-        <button className="p-3 hover:bg-white/10 rounded-full transition-colors">
-          <MoreHorizontal className="w-6 h-6 text-gray-400" />
+        <button onClick={()=>handleDeleteAlbum()} className="p-3 hover:bg-white/10 rounded-full transition-colors">
+          <Delete className="w-6 h-6 text-red-400" />
         </button>
       </div>
 
       {/* Songs List */}
       <div className="px-8 pb-8">
-        {/* Header - Updated to show Year and Duration columns separately */}
         <div className="flex items-center gap-4 px-6 py-3 border-b border-white/10 text-gray-400 text-sm font-medium">
           <div className="w-6 text-center">#</div>
           <div className="flex-1">Title</div>
@@ -253,7 +303,8 @@ function AlbumPage() {
         <div className="space-y-1 mt-4">
           {currentAlbum.songs?.map((song, index) => (
             <SongItem
-              key={index}
+              key={song._id}
+              albumId={id}
               song={song}
               index={index}
               onPlay={handlePlaySong}
@@ -270,7 +321,7 @@ function AlbumPage() {
       </div>
 
       {/* Bottom Spacing */}
-                {showPlayer && (
+      {showPlayer && (
         <div 
           className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 ease-out ${
             isPlaying 
